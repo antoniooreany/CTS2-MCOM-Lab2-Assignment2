@@ -46,9 +46,11 @@ _start:
 					# begin at end of section
 START:
 	mov r2, r0			# COUNTER init
+LOOP:
 	call read_COUNT_BUTTON		# subroutine read_COUNT_BUTTON is called
 	call read_CLEAR_BUTTON		# subroutine read_CLEAR_BUTTON is called
-	br START		# check for the key pressed again
+	call write_LED		# subroutine write_LED is called
+	br LOOP		# check for the key pressed again
 
 read_COUNT_BUTTON:
 	movia r9, 0x840		# r9 <- 0x840
@@ -67,6 +69,11 @@ read_CLEAR_BUTTON:
 	mov r2, r0		# COUNTER=0
 return_CLEAR_BUTTON:
 	ret			# return
+
+write_LED:
+	movia r3, 0x810		# r3 <- 0x810=output_register_address)
+	stw r2, (r3)		# r7 -> (r2) parameter -> output_register
+ret
 
 endloop:
 	br endloop		# that's it
