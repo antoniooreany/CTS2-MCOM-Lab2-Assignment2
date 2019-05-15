@@ -9,10 +9,10 @@
 # Definition von symbolen Konstanten
 ###############################################
 	.equ STACK_SIZE, 0x400	# stack size
-	.equ PUSH_r3_1, subi sp, sp, 4
-	.equ PUSH_r3_2, stw r3, (sp)
-	.equ POP_r3_1, ldw r3, (sp)
-	.equ POP_r3_2, addi sp, sp, 4
+	.equ PUSH_r9_1, subi sp, sp, 4
+	.equ PUSH_r9_2, stw r9, (sp)
+	.equ POP_r9_1, ldw r9, (sp)
+	.equ POP_r9_2, addi sp, sp, 4
 ###############################################
 # DATA SECTION
 # assumption: 12 kByte data section (0 - 0x2fff)
@@ -49,46 +49,52 @@ _start:
 	addi	sp, sp, STACK_SIZE	# stack start position should
 					# begin at end of section
 START:
-	mov r2, r0			# COUNTER init
+	mov r7, r0			# COUNTER init
 LOOP:
-	call read_COUNT_BUTTON		# subroutine read_COUNT_BUTTON is called
-	call read_CLEAR_BUTTON		# subroutine read_CLEAR_BUTTON is called
 	call write_LED		# subroutine write_LED is called
-	br LOOP		# check for the key pressed again
+	call read_COUNT_BUTTON	# subroutine read_COUNT_BUTTON is called
+	call read_CLEAR_BUTTON	# subroutine read_CLEAR_BUTTON is called
+	br LOOP			# check for the key pressed again
 
 read_COUNT_BUTTON:
-	subi sp, sp, 4		# PUSH_r3_1
-	stw r3, (sp)		# PUSH_r3_2
-	movia r3, 0x840		# r3 <- 0x840
-	ldw r3, (r3)		# r3 <- (0x840)
-	andi r3, r3, 0x1	# r3 <- masked value of (0x840)
-	beq r3, r0, return_COUNT_BUTTON	# if r3==0 => goto return_COUNT_BUTTON 
-	addi r2, r2, 1		# COUNTER++ 
-return_COUNT_BUTTON:
-	ldw r3, (sp)		# POP_r3_1
-	addi sp, sp, 4		# POP_r3_2
-	ret			# return
-
+	subi sp, sp, 4		# PUSH_r9_1
+	stw r9, (sp)		# PUSH_r9_2
+	movia r9, 0x840		# r9 <- 0x840
+	ldw r9, (r9)		# r9 <- (0x840)
+	andi r9, r9, 0x1	# r9 <- masked value of (0x840)
+	bne r9, r0, RELEASED	# Pressed: if r9!=0 => goto RELEASED
+	br return_read_COUNT_BUTTON
+RELEASED:
+	movia r9, 0x840		# r9 <- 0x840
+	ldw r9, (r9)		# r9 <- (0x840)
+	andi r9, r9, 0x1	# r9 <- masked value of (0x840)
+	bne r9, r0, RELEASED	# Pressed: if r9!=0 => goto RELEASED
+	addi r7, r7, 1		# Pressed: COUNTER++ 
+return_read_COUNT_BUTTON:
+	ldw r9, (sp)		# POP_r9_1
+	addi sp, sp, 4		# POP_r9_2
+	ret	
+	
 read_CLEAR_BUTTON:
-	subi sp, sp, 4		# PUSH_r3_1
-	stw r3, (sp)		# PUSH_r3_2
-	movia r3, 0x840		# r3 <- 0x840
-	ldw r3, (r3)		# r3 <- (0x840)
-	andi r3, r3, 0x8	# r3 <- masked value of (0x840)
-	beq r3, r0, return_CLEAR_BUTTON	# if r3==0 => goto return_COUNT_BUTTON 
-	mov r2, r0		# COUNTER=0
+	subi sp, sp, 4		# PUSH_r9_1
+	stw r9, (sp)		# PUSH_r9_2
+	movia r9, 0x840		# r9 <- 0x840
+	ldw r9, (r9)		# r9 <- (0x840)
+	andi r9, r9, 0x8	# r9 <- masked value of (0x840)
+	beq r9, r0, return_CLEAR_BUTTON	# if r9==0 => goto return_COUNT_BUTTON 
+	mov r7, r0		# COUNTER=0
 return_CLEAR_BUTTON:
-	ldw r3, (sp)		# POP_r3_1
-	addi sp, sp, 4		# POP_r3_2
+	ldw r9, (sp)		# POP_r9_1
+	addi sp, sp, 4		# POP_r9_2
 	ret			# return
 
 write_LED:
-	subi sp, sp, 4		# PUSH_r3_1
-	stw r3, (sp)		# PUSH_r3_2
-	movia r3, 0x810		# r3 <- 0x810=output_register_address
-	stw r2, (r3)		# r2 -> (r3) COUNTER -> output_register
-	ldw r3, (sp)		# POP_r3_1
-	addi sp, sp, 4		# POP_r3_2
+	subi sp, sp, 4		# PUSH_r9_1
+	stw r9, (sp)		# PUSH_r9_2
+	movia r9, 0x810		# r9 <- 0x810=output_register_address
+	stw r7, (r9)		# r7 -> (r9) COUNTER -> output_register
+	ldw r9, (sp)		# POP_r9_1
+	addi sp, sp, 4		# POP_r9_2
 	ret
 
 endloop:
