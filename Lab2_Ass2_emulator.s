@@ -50,6 +50,7 @@ _start:
 					# begin at end of section
 START:
 	mov r7, r0			# COUNTER init
+
 LOOP:
 	call write_LED		# subroutine write_LED is called
 	call read_COUNT_BUTTON	# subroutine read_COUNT_BUTTON is called
@@ -57,8 +58,8 @@ LOOP:
 	br LOOP			# check for the key pressed again
 
 read_COUNT_BUTTON:
-	subi sp, sp, 4		# PUSH_r9_1
-	stw r9, (sp)		# PUSH_r9_2
+	PUSH_r9_1
+	PUSH_r9_2
 	movia r9, 0x840		# r9 <- 0x840
 	ldw r9, (r9)		# r9 <- (0x840)
 	andi r9, r9, 0x1	# r9 <- masked value of (0x840)
@@ -71,30 +72,30 @@ RELEASED:
 	bne r9, r0, RELEASED	# Pressed: if r9!=0 => goto RELEASED
 	addi r7, r7, 1		# Pressed: COUNTER++ 
 return_read_COUNT_BUTTON:
-	ldw r9, (sp)		# POP_r9_1
-	addi sp, sp, 4		# POP_r9_2
+	POP_r9_1
+	POP_r9_2
 	ret	
 	
 read_CLEAR_BUTTON:
-	subi sp, sp, 4		# PUSH_r9_1
-	stw r9, (sp)		# PUSH_r9_2
+	PUSH_r9_1
+	PUSH_r9_2
 	movia r9, 0x840		# r9 <- 0x840
 	ldw r9, (r9)		# r9 <- (0x840)
 	andi r9, r9, 0x8	# r9 <- masked value of (0x840)
 	beq r9, r0, return_CLEAR_BUTTON	# if r9==0 => goto return_COUNT_BUTTON 
 	mov r7, r0		# COUNTER=0
 return_CLEAR_BUTTON:
-	ldw r9, (sp)		# POP_r9_1
-	addi sp, sp, 4		# POP_r9_2
+	POP_r9_1
+	POP_r9_2
 	ret			# return
 
 write_LED:
-	subi sp, sp, 4		# PUSH_r9_1
-	stw r9, (sp)		# PUSH_r9_2
+	PUSH_r9_1
+	PUSH_r9_2
 	movia r9, 0x810		# r9 <- 0x810=output_register_address
 	stw r7, (r9)		# r7 -> (r9) COUNTER -> output_register
-	ldw r9, (sp)		# POP_r9_1
-	addi sp, sp, 4		# POP_r9_2
+	POP_r9_1
+	POP_r9_2
 	ret
 
 endloop:
